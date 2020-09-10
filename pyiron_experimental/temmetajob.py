@@ -38,7 +38,7 @@ class TEMMETAJob(TemplateJob):
     def plot(self):
         if len(self._vec) == 2:
             [[x1, y1], [x2, y2]] = self._vec
-        av = self._image.average()
+        av = self._image.average
         ax, im = av.plot(dpi=50)
         if len(self._vec) == 2:
             ax.arrow(x1, y1, x2-x1, y2-y1, color = (0., 1., 0.), head_width=5)
@@ -46,7 +46,7 @@ class TEMMETAJob(TemplateJob):
     def run_static(self):
         if len(self._vec) == 2:
             [[x1, y1], [x2, y2]] = self._vec
-            av = self._image.average()
+            av = self._image.average
             self._profile = av.intensity_profile(x1, y1, x2, y2)
             with self.project_hdf5.open("output/generic") as h5out: 
                  h5out["profile"] = self._profile.data

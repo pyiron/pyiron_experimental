@@ -36,7 +36,7 @@ class pySTEMTEMMETAJob(TemplateJob):
         return emd1.get_dataset("Image", "6fdbde41eecc4375b45cd86bd2be17c0")
     
     def plot(self, labels=False, alpha=0.5):
-        av = self._image.average()
+        av = self._image.average
         ax, im = plot_image(img=av, dpi=50)
         if labels:
             labels = self["output/generic/segmentation_labels"]
@@ -58,7 +58,7 @@ class pySTEMTEMMETAJob(TemplateJob):
         return labels
 
     def run_static(self):
-        av = self._image.average()
+        av = self._image.average
         with self.project_hdf5.open("output/generic") as h5out: 
             h5out["segmentation_labels"] = self.perform_segmentation(av.data) 
         self.status.finished = True
