@@ -13,8 +13,8 @@ class MatchSeries(TemplateJob):
     def _copy_restart_files(self):
         # copy images to working directory - bad shortcut ! 
         for file in os.listdir('.'):
-            if scanf.scanf(job.input["templateNamePattern"], s=file, collapseWhitespace=True):
-                job._restart_file_list.append(file)
+            if scanf.scanf(self.input["templateNamePattern"], s=file, collapseWhitespace=True):
+                self._restart_file_list.append(file)
         super()._copy_restart_files()
         
     def write_input(self): 
