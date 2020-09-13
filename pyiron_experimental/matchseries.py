@@ -1,7 +1,6 @@
 import os
 import scanf
-from pyiron_base.job.template import TemplateJob
-from pyiron_base.generic.parameters import GenericParameters
+from pyiron_base import TemplateJob, GenericParameters
 
 
 class MatchSeries(TemplateJob):
