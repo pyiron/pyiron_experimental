@@ -1,4 +1,4 @@
-from pyiron_base.job.template import TemplateJob
+from pyiron_base import TemplateJob
 from temmeta import data_io as dio
 from temmeta import image_filters as imf
 
