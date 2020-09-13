@@ -1,5 +1,4 @@
-from pyiron_base import Project
-from pyiron_base.job.jobtype import JOB_CLASS_DICT
+from pyiron_base import Project, JOB_CLASS_DICT
 
 
 JOB_CLASS_DICT["pySTEMTEMMETAJob"] = "pyiron_experimental.pystemjob"
