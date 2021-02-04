@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from pyiron_base import TemplateJob
+from pyiron_base.job.template import TemplateJob
 from temmeta import data_io as dio
 from temmeta import image_filters as imf
 from temmeta.plottingtools import get_scalebar
@@ -11,12 +11,26 @@ class pySTEMTEMMETAJob(TemplateJob):
         super(pySTEMTEMMETAJob, self).__init__(project, job_name) 
         self.input['file_name'] = ''
         self.input['n_patterns'] = 2
-        self.input['patch_x'] = 20
-        self.input['patch_y'] = 20
-        self.input['window_x'] = 20
-        self.input['window_y'] = 20
-        self.input['step'] = 20
+        self.input['stride'] = 5
+        self.input['descriptor_name'] = 'local_correlation_map'
+        self.input['n_PCA_components'] = 5
         self.input['upsampling'] = True
+        self.input['preselected_translations'] = None
+        self.input['window_x'] = 21
+        self.input['window_y'] = 21
+        self.input['num_reflection_plane'] = 10
+        self.input['radius'] = 20
+        self.input['patch_x'] = 20
+        self.input['patch_y'] = 20 
+        self.input['max_num_points'] = 100
+        self.input['method'] = 'direct'
+        self.input['sort_labels_by_pattern_size'] = True
+        self.input['random_state'] = None
+        self.input['separability_analysis'] = False
+        self.input['num_operations_with_best_sep'] = 5
+        self.input['one_step_kmeans'] = False
+        self.input['pca_fitted'] = None
+        self.input['kmeans_init_centers'] = None
         self._python_only_job = True
         self._image = None
         self._vec = []
@@ -47,13 +61,28 @@ class pySTEMTEMMETAJob(TemplateJob):
     
     def perform_segmentation(self,image):
         seg = segmentationSTEM(
-            n_patterns=self.input['n_patterns'],
+            n_patterns=self.input['n_patterns'], 
+            stride=self.input['stride'],
+            descriptor_name=self.input['descriptor_name'],
+            n_PCA_components=self.input['n_PCA_components'],
+            upsampling=self.input['upsampling'],
+            preselected_translations=self.input['preselected_translations'],
             window_x=self.input['window_x'],
-            window_y=self.input['window_y'],
+            window_y=self.input['window_y'], 
+            num_reflection_plane=self.input['num_reflection_plane'],
+            radius=self.input['radius'],
             patch_x=self.input['patch_x'],
-            patch_y=self.input['patch_y'],
-            step=self.input['step'],
-            upsampling=self.input['upsampling'])
+            patch_y=self.input['patch_y'], 
+            max_num_points=self.input['max_num_points'],
+            method=self.input['method'],
+            sort_labels_by_pattern_size=self.input['sort_labels_by_pattern_size'],
+            random_state=self.input['random_state'],
+            separability_analysis=self.input['separability_analysis'],
+            num_operations_with_best_sep=self.input['num_operations_with_best_sep'],
+            one_step_kmeans=self.input['one_step_kmeans'],
+            pca_fitted=self.input['pca_fitted'],
+            kmeans_init_centers=self.input['kmeans_init_centers']
+        )
         labels = seg.perform_clustering(image)
         return labels
 
