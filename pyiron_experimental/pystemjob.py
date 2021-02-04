@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from pyiron_base.job.template import TemplateJob
+from pyiron_base import TemplateJob
 from temmeta import data_io as dio
 from temmeta import image_filters as imf
 from temmeta.plottingtools import get_scalebar
@@ -8,7 +8,7 @@ from pystem.stemsegmentation import segmentationSTEM
 
 class pySTEMTEMMETAJob(TemplateJob):
     def __init__(self, project, job_name):
-        super(pySTEMTEMMETAJob, self).__init__(project, job_name) 
+        super(pySTEMTEMMETAJob, self).__init__(project, job_name)
         self.input['file_name'] = ''
         self.input['n_patterns'] = 2
         self.input['stride'] = 5
@@ -21,7 +21,7 @@ class pySTEMTEMMETAJob(TemplateJob):
         self.input['num_reflection_plane'] = 10
         self.input['radius'] = 20
         self.input['patch_x'] = 20
-        self.input['patch_y'] = 20 
+        self.input['patch_y'] = 20
         self.input['max_num_points'] = 100
         self.input['method'] = 'direct'
         self.input['sort_labels_by_pattern_size'] = True
@@ -35,44 +35,44 @@ class pySTEMTEMMETAJob(TemplateJob):
         self._image = None
         self._vec = []
         self._profile = []
-    
+
     @property
     def file_name(self):
         return self.input['file_name']
-    
+
     @file_name.setter
     def file_name(self, file_name):
         self.input['file_name'] = file_name
         self._image = self.create_tem_image()
-    
+
     def create_tem_image(self):
         emd1 = dio.EMDFile(self.input['file_name'])
         return emd1.get_dataset("Image", "6fdbde41eecc4375b45cd86bd2be17c0")
-    
+
     def plot(self, labels=False, alpha=0.5):
         av = self._image.average
         ax, im = plot_image(img=av, dpi=50)
         if labels:
             labels = self["output/generic/segmentation_labels"]
-            if labels is not None: 
+            if labels is not None:
                 ax.imshow(labels, alpha=alpha)
-            else: 
+            else:
                 raise ValueError()
-    
+
     def perform_segmentation(self,image):
         seg = segmentationSTEM(
-            n_patterns=self.input['n_patterns'], 
+            n_patterns=self.input['n_patterns'],
             stride=self.input['stride'],
             descriptor_name=self.input['descriptor_name'],
             n_PCA_components=self.input['n_PCA_components'],
             upsampling=self.input['upsampling'],
             preselected_translations=self.input['preselected_translations'],
             window_x=self.input['window_x'],
-            window_y=self.input['window_y'], 
+            window_y=self.input['window_y'],
             num_reflection_plane=self.input['num_reflection_plane'],
             radius=self.input['radius'],
             patch_x=self.input['patch_x'],
-            patch_y=self.input['patch_y'], 
+            patch_y=self.input['patch_y'],
             max_num_points=self.input['max_num_points'],
             method=self.input['method'],
             sort_labels_by_pattern_size=self.input['sort_labels_by_pattern_size'],
@@ -88,11 +88,11 @@ class pySTEMTEMMETAJob(TemplateJob):
 
     def run_static(self):
         av = self._image.average
-        with self.project_hdf5.open("output/generic") as h5out: 
-            h5out["segmentation_labels"] = self.perform_segmentation(av.data) 
+        with self.project_hdf5.open("output/generic") as h5out:
+            h5out["segmentation_labels"] = self.perform_segmentation(av.data)
         self.status.finished = True
 
-        
+
 def plot_array(imgdata, pixelsize=1., pixelunit="", scale_bar=True,
                show_fig=True, width=15, dpi=None,
                sb_settings={"location": 'lower right',
