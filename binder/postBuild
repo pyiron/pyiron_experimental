@@ -2,3 +2,4 @@
 printf "[DEFAULT]\nTOP_LEVEL_DIRS = ${HOME}\nRESOURCE_PATHS = ${HOME}/resources" > ${HOME}/.pyiron
 pip install --no-deps .
 mv notebooks/* .
+rm -rf notebooks pyiron_experimental setup.py README.md LICENSE CODE_OF_CONDUCT.md binder .github .ci_support setup.cfg versioneer.py
