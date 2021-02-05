@@ -11,4 +11,4 @@ JOB_CLASS_DICT["MatchSeries"] = "pyiron_experimental.matchseries"
 from ._version import get_versions
 
 __version__ = get_versions()["version"]
-del 
+del get_versions
