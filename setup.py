@@ -2,11 +2,12 @@
 Setuptools based setup module
 """
 from setuptools import setup, find_packages
+import versioneer
 
 
 setup(
     name='pyiron_experimental',
-    version='0.0.1',
+    version=versioneer.get_version(),
     description='Repository for experimental plugins to the pyiron IDE.',
     long_description='http://pyiron.org',
 
@@ -37,5 +38,6 @@ setup(
         'pystem==0.0.25',
         'hyperspy==1.5.2',
         'scanf==1.5.2',
-    ]
+    ],
+    cmdclass=versioneer.get_cmdclass(),
 )
