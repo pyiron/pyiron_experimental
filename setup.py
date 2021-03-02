@@ -33,7 +33,7 @@ setup(
     keywords='pyiron',
     packages=find_packages(exclude=["*tests*"]),
     install_requires=[
-        'pyiron_base==0.2.0',
+        'pyiron_base==0.2.2',
         'temmeta==0.0.6',
         'pystem==0.0.25',
         'hyperspy==1.5.2',
