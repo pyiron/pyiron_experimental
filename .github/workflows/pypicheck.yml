@@ -22,7 +22,7 @@ jobs:
         auto-update-conda: true
         python-version: ${{ matrix.python-version }}
         channel-priority: strict
-        environment-file: .ci_support/environment.yml
+        environment-file: binder/environment.yml
     - name: Setup
       shell: bash -l {0}
       run: |
