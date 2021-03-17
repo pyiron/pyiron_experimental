@@ -36,7 +36,7 @@ setup(
         'pyiron_base==0.2.2',
         'temmeta==0.0.6',
         'pystem==0.0.25',
-        'hyperspy==1.5.2',
+        'hyperspy==1.6.1',
         'scanf==1.5.2',
     ],
     cmdclass=versioneer.get_cmdclass(),
