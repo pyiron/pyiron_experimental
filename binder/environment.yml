@@ -1,7 +1,7 @@
 channels:
 - conda-forge
 dependencies:
-- pyiron_base>=0.2.5    # simulation framework 
+- pyiron_base>=0.2.6    # simulation framework 
 - temmeta=0.0.6         # TEM image post processing
 - pystem =0.0.25        # image segmentation
 - match-series          # ridge deformation 
