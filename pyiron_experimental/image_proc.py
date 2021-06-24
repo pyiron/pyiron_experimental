@@ -315,14 +315,14 @@ class ROISelector:
         if self._selector is None:
             return None
         else:
-            return self._selector.extents[:2]
+            return np.array(self._selector.extents[:2])
 
     @property
     def y(self):
         if self._selector is None:
             return None
         else:
-            return self._selector.extents[2:]
+            return np.array(self._selector.extents[2:])
 
     def clear_select(self):
         if self._selector is not None:
