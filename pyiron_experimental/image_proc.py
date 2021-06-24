@@ -6,17 +6,13 @@ import numpy as np
 
 class LineSelector(plt_wid._SelectorWidget):
     def __init__(self, ax, onselect, useblit=False, button=None,
-                 state_modifier_keys=None, interactive=False):
+                 state_modifier_keys=None, interactive=False, plot_props=None):
         super().__init__(ax, onselect, useblit=useblit, button=button,
                          state_modifier_keys=state_modifier_keys)
         self.visible = True
         self.interactive = interactive
 
-        lineprops = dict(color='black', linestyle='-',
-                                 linewidth=2, alpha=0.5)
-        lineprops['animated'] = self.useblit
-        self.lineprops = lineprops
-        self._init_to_draw()
+        self._init_to_draw(plot_props)
 
         self.maxdist = 10
 
@@ -43,9 +39,17 @@ class LineSelector(plt_wid._SelectorWidget):
 
         self._extents_on_press = None
 
-    def _init_to_draw(self):
+    def _init_to_draw(self, plot_props):
+        _plot_props = dict(color='black', linestyle='-',
+                           linewidth=2, alpha=0.5)
+
+        if plot_props is not None:
+            _plot_props.update(plot_props)
+
+        _plot_props['animated'] = self.useblit
+        self.plot_props = _plot_props
         self.to_draw = plt.Line2D([0, 0], [0, 0], visible=False,
-                                  **self.lineprops)
+                                  **self.plot_props)
         self.ax.add_line(self.to_draw)
 
     def _press(self, event):
@@ -207,14 +211,15 @@ class LineSelector(plt_wid._SelectorWidget):
 
 class RectangleSelector(LineSelector):
 
-    def _init_to_draw(self):
+    def _init_to_draw(self, plot_props):
         rectprops = dict(facecolor='red', edgecolor='black',
                          alpha=0.2, fill=True)
-
+        if plot_props is not None:
+            rectprops.update(plot_props)
         rectprops['animated'] = self.useblit
-        self.rectprops = rectprops
+        self.plot_props = rectprops
         self.to_draw = plt.Rectangle((0, 0), 0, 1, visible=False,
-                                     **self.rectprops)
+                                     **self.plot_props)
         self.ax.add_patch(self.to_draw)
 
     def draw_shape(self, extents):
@@ -236,14 +241,16 @@ class RectangleSelector(LineSelector):
 
 
 class EllipsoidSelector(LineSelector):
-    def _init_to_draw(self):
-        rectprops = dict(facecolor='red', edgecolor='black',
-                         alpha=0.2, fill=True)
+    def _init_to_draw(self, plot_props):
+        ellipsoid_props = dict(facecolor='red', edgecolor='black',
+                               alpha=0.2, fill=True)
 
-        rectprops['animated'] = self.useblit
-        self.rectprops = rectprops
+        if plot_props is not None:
+            ellipsoid_props.update(plot_props)
+        ellipsoid_props['animated'] = self.useblit
+        self.plot_props = ellipsoid_props
         self.to_draw = mpl.patches.Ellipse((0, 0), 0, 0, visible=False,
-                                           **self.rectprops)
+                                           **self.plot_props)
         # self.to_draw = plt.Circle((0, 0), 0, visible=False,
         #                          **self.rectprops)
         self.ax.add_patch(self.to_draw)
@@ -267,17 +274,17 @@ class EllipsoidSelector(LineSelector):
 
 
 class CircleSelector(LineSelector):
-    def _init_to_draw(self):
-        rectprops = dict(facecolor='red', edgecolor='black',
+    def _init_to_draw(self, plot_props):
+        circle_props = dict(facecolor='red', edgecolor='black',
                          alpha=0.2, fill=True)
+        if plot_props is not None:
+            circle_props.update(plot_props)
 
-        rectprops['animated'] = self.useblit
-        self.rectprops = rectprops
-        # self.to_draw = mpl.patches.Circle((0, 0), 0, visible=False,
-        #                                 **self.rectprops)
+        circle_props['animated'] = self.useblit
+        self.plot_props = circle_props
         self.to_draw = plt.Circle((0, 0), 0, visible=False,
                                   transform=self.ax.figure.dpi_scale_trans,  # positions transformed to inch
-                                  **self.rectprops)
+                                  **self.plot_props)
         self.ax.add_patch(self.to_draw)
 
     def draw_shape(self, extents):
@@ -345,7 +352,7 @@ class ROISelector:
         self._selector = RectangleSelector(self.ax, self._on_select, useblit=True,
                                            button=[1, 3], interactive=True)
 
-    def select_line(self):
+    def select_line(self, lw=5):
         self.clear_select()
         self._selector = LineSelector(self.ax, self._on_select, useblit=True,
-                                      button=[1, 3], interactive=True)
+                                      button=[1, 3], interactive=True, plot_props=dict(linewidth=lw))
