@@ -331,28 +331,31 @@ class ROISelector:
         else:
             return np.array(self._selector.extents[2:])
 
+    def set_active(self, active):
+        self._selector.set_active(active)
+
     def clear_select(self):
         if self._selector is not None:
             self._selector.disconnect_events()
             self._selector.set_visible(False)
             self._selector = None
 
-    def select_circle(self):
+    def select_circle(self, circle_properties):
         self.clear_select()
         self._selector = CircleSelector(self.ax, self._on_select, useblit=True,
-                                        button=[1, 3], interactive=True)
+                                        button=[1, 3], interactive=True, plot_props=circle_properties)
 
-    def select_ellipse(self):
+    def select_ellipse(self, ellipsoid_properties=None):
         self.clear_select()
         self._selector = EllipsoidSelector(self.ax, self._on_select, useblit=True,
-                                           button=[1, 3], interactive=True)
+                                           button=[1, 3], interactive=True, plot_props=ellipsoid_properties)
 
-    def select_rectangle(self):
+    def select_rectangle(self, rectangle_properties=None):
         self.clear_select()
         self._selector = RectangleSelector(self.ax, self._on_select, useblit=True,
-                                           button=[1, 3], interactive=True)
+                                           button=[1, 3], interactive=True, plot_props=rectangle_properties)
 
-    def select_line(self, lw=5):
+    def select_line(self, line_properties=None):
         self.clear_select()
         self._selector = LineSelector(self.ax, self._on_select, useblit=True,
-                                      button=[1, 3], interactive=True, plot_props=dict(linewidth=lw))
+                                      button=[1, 3], interactive=True, plot_props=line_properties)
