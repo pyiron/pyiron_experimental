@@ -1,7 +1,7 @@
 channels:
 - conda-forge
 dependencies:
-- pyiron_base=0.2.15    # simulation framework
+- pyiron_base=0.2.16    # simulation framework
 - matplotlib=3.4.2      # plotting library
 - temmeta=0.0.6         # TEM image post processing
 - pystem =0.0.25        # image segmentation
