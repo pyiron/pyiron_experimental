@@ -19,6 +19,7 @@ class LineProfiles:
         #    self.ax = ax
         self.fig, self.ax = plt.subplots()
         self.ax.imshow(self._signal.data)
+        return self.fig, self.ax
 
     @property
     def active_line(self):
