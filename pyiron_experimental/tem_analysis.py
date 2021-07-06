@@ -45,8 +45,10 @@ class LineProfiles:
     def plot_line_profiles(self, ax=None):
         if ax is None:
             fig, ax = plt.subplots()
+        lengths = [line_prof.line_length * line_prof.hs_scale for line_prof in self._line_profiles]
         for i, profile in enumerate(self._line_profiles):
             profile.plot_line_profile(ax=ax, line_properties={"label": f"Line profile {i}"})
+        ax.set_xlim(0, np.max(lengths))
 
 
 class LineProfile:
@@ -89,6 +91,16 @@ class LineProfile:
     def hs_line_profile(self):
         return self.hs_roi(self._signal)
 
+    @property
+    def line_length(self):
+        x1, x2 = self._selector.x
+        y1, y2 = self._selector.y
+        return np.linalg.norm(np.array([x2, y2]) - np.array([x1, y1]))
+
+    @property
+    def hs_scale(self):
+        return self._signal.axes_manager[0].scale
+
     def plot_line_profile(self, ax=None, line_properties=None):
         _line_properties = dict(linestyle="-", color="C1", label="Line profile")
         _line_properties.update(self._line_properties)
@@ -96,18 +108,14 @@ class LineProfile:
             _line_properties.update(line_properties)
 
         profile = self.hs_line_profile
-        scale = self._signal.axes_manager[0].scale
         if ax is None:
             fig, ax = plt.subplots()
-        ax.plot(np.arange(profile.data.shape[0]) * scale, profile.data, **_line_properties)
+        ax.plot(np.arange(profile.data.shape[0]) * self.hs_scale, profile.data, **_line_properties)
 
         ax.legend()
         ax.set_yticks([])
-        x1, x2 = self._selector.x
-        y1, y2 = self._selector.y
 
-        line_length = np.linalg.norm(np.array([x2, y2]) - np.array([x1, y1]))
-        ax.set_xlim(0, line_length * scale)
+        ax.set_xlim(0, self.line_length * self.hs_scale)
 
         ax.set_xlabel(f"Distance ({profile.axes_manager[0].units})")
         ax.set_ylabel("Intensity (a.u)")
@@ -116,7 +124,7 @@ class LineProfile:
     def hs_roi(self):
         if self._selector is None:
             raise RuntimeError("You need to select a ROI (select_roi) before this can be converted to hyperspy!")
-        scale = self._signal.axes_manager[0].scale
+        scale = self.hs_scale
         x = self._selector.x * scale
         y = self._selector.y * scale
         x += self._signal.axes_manager[0].offset
