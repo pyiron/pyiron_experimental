@@ -8,7 +8,7 @@ import sys
 
 import yaml
 
-environment_file = '.ci_support/environment.yml'
+environment_file = 'binder/environment.yml'
 name_mapping_file = '.ci_support/pypi_vs_conda_names.json'
 
 
