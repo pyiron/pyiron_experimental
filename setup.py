@@ -36,7 +36,7 @@ setup(
         'pyiron_base==0.2.20',
         'matplotlib==3.4.2',
         'temmeta==0.0.6',
-        'pystem==0.0.25',
+        'pystem==0.0.26',
         'hyperspy==1.6.4',
         'scanf==1.5.2',
     ],
