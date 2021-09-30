@@ -6,7 +6,7 @@ import numpy as np
 
 class LineSelector(plt_wid._SelectorWidget):
     def __init__(self, ax, onselect, useblit=False, button=None,
-                 state_modifier_keys=None, interactive=False, plot_props=None):
+                 state_modifier_keys=None, interactive=False, plot_props=None, x=None, y=None):
         super().__init__(ax, onselect, useblit=useblit, button=button,
                          state_modifier_keys=state_modifier_keys)
         self.visible = True
@@ -17,7 +17,8 @@ class LineSelector(plt_wid._SelectorWidget):
         self.maxdist = 10
 
         props = dict(markeredgecolor='r')
-        x, y = [0, 0], [0, 0]
+        x = [xi for xi in x] if x is not None else [0, 0]
+        y = [yi for yi in y] if y is not None else [0, 0]
         self._extents = x + y
 
         self._corner_order = ['I', 'E']  # initial and end point
@@ -38,6 +39,9 @@ class LineSelector(plt_wid._SelectorWidget):
             self.artists = [self.to_draw]
 
         self._extents_on_press = None
+
+        if self.extents != [0, 0, 0, 0]:
+            self.extents = self.extents
 
     def _init_to_draw(self, plot_props):
         _plot_props = dict(color='black', linestyle='-',
@@ -340,22 +344,26 @@ class ROISelector:
             self._selector.set_visible(False)
             self._selector = None
 
-    def select_circle(self, circle_properties):
+    def select_circle(self, circle_properties, x=None, y=None):
         self.clear_select()
         self._selector = CircleSelector(self.ax, self._on_select, useblit=True,
-                                        button=[1, 3], interactive=True, plot_props=circle_properties)
+                                        button=[1, 3], interactive=True, plot_props=circle_properties,
+                                        x=x, y=y)
 
-    def select_ellipse(self, ellipsoid_properties=None):
+    def select_ellipse(self, ellipsoid_properties=None, x=None, y=None):
         self.clear_select()
         self._selector = EllipsoidSelector(self.ax, self._on_select, useblit=True,
-                                           button=[1, 3], interactive=True, plot_props=ellipsoid_properties)
+                                           button=[1, 3], interactive=True, plot_props=ellipsoid_properties,
+                                           x=x, y=y)
 
-    def select_rectangle(self, rectangle_properties=None):
+    def select_rectangle(self, rectangle_properties=None, x=None, y=None):
         self.clear_select()
         self._selector = RectangleSelector(self.ax, self._on_select, useblit=True,
-                                           button=[1, 3], interactive=True, plot_props=rectangle_properties)
+                                           button=[1, 3], interactive=True, plot_props=rectangle_properties,
+                                           x=x, y=y)
 
-    def select_line(self, line_properties=None):
+    def select_line(self, line_properties=None, x=None, y=None):
         self.clear_select()
         self._selector = LineSelector(self.ax, self._on_select, useblit=True,
-                                      button=[1, 3], interactive=True, plot_props=line_properties)
+                                      button=[1, 3], interactive=True, plot_props=line_properties,
+                                      x=x, y=y)
