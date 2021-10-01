@@ -43,6 +43,10 @@ class LineSelector(plt_wid._SelectorWidget):
         if self.extents != [0, 0, 0, 0]:
             self.extents = self.extents
 
+    def set_active(self, active):
+        # TODO: change self.corner_handles and self._center_handle marker properties if activity changes.
+        super().set_active(active)
+
     def _init_to_draw(self, plot_props):
         _plot_props = dict(color='black', linestyle='-',
                            linewidth=2, alpha=0.5)

@@ -7,18 +7,23 @@ from pyiron_experimental.image_proc import ROISelector
 from pyiron_base import GenericMaster, GenericJob, DataContainer, InteractiveBase
 
 
+def new_figures_without_auto_plot():
+    is_interactive = plt.isinteractive()
+    plt.ioff()
+    fig, ax = plt.subplots()
+    plt.close(fig)
+    if is_interactive:
+        plt.ion()
+    return fig, ax
+
+
 class LineProfiles(GenericJob):
     def __init__(self, project, job_name):
         super().__init__(project=project, job_name=job_name)
         self._signal = None
-        # self.fig = self.ax = None
-        is_interactive = plt.isinteractive()
-        plt.ioff()
-        self.fig, self.ax = plt.subplots()
-        plt.close(self.fig)
-        if is_interactive:
-            plt.ion()
-        self._line_profiles = []
+        self.fig, self.ax = new_figures_without_auto_plot()
+        self._n_lines = 0
+        self._line_profiles = {}
         self._active_selector = None
         self._storage = DataContainer(table_name='storage')
         _input = self._storage.create_group('input')
@@ -86,7 +91,7 @@ class LineProfiles(GenericJob):
 
     def plot_roi(self):
         active_line = self.active_line
-        for line in self._line_profiles:
+        for line in self._line_profiles.values():
             line.plot_roi(active=False)
         self.active_line = active_line
         return self.fig
@@ -97,26 +102,31 @@ class LineProfiles(GenericJob):
 
     @active_line.setter
     def active_line(self, value):
-        if self.status.finished:
+        if self.status.finished and value is not None:
             raise ValueError("Finished jobs cannot be changed.")
         self._active_selector = value
-        for selector in self._line_profiles:
+        for selector in self._line_profiles.values():
             selector.set_active(False)
         if value is not None:
             self._line_profiles[value].set_active(True)
 
     def _add_line_interactive(self, lw, line_properties, x, y):
         line_profile = LineProfile(self._signal, ax=self.ax)
-        self._line_profiles.append(line_profile)
+        self._n_lines += 1
+        self._line_profiles[self._n_lines] = line_profile
         line_profile.select_roi(lw=lw, line_properties=line_properties, x=x, y=y)
+
+    def remove_line(self, line=None):
+        line = line if line is not None else self.active_line
+        del self._line_profiles[line]
 
     def add_line(self, lw=5, line_properties=None, x=None, y=None):
         if self.ax is None:
             self.plot_signal()
         if line_properties is None:
-            line_properties = dict(color=f"C{len(self._line_profiles)}")
+            line_properties = dict(color=f"C{self._n_lines + 1}")
         self._add_line_interactive(lw, line_properties, x, y)
-        self.active_line = len(self._line_profiles) - 1
+        self.active_line = self._n_lines
         self.input.lines.append(
             {'line': self.active_line,
              'lw': lw,
@@ -126,11 +136,11 @@ class LineProfiles(GenericJob):
         self.input.y.append(y)
         self.input.lw.append(lw)
 
-    def _add_line_static(self, x, y, lw):
-        print(f"lw={lw}, x={x}, y={y}")
+    def _add_line_static(self, x, y, lw=None):
         lw = lw or 5
         line_profile = LineProfile(self._signal, ax=self.ax)
-        self._line_profiles.append(line_profile)
+        self._n_lines += 1
+        self._line_profiles[self._n_lines] = line_profile
         line_profile.calc_roi(lw_px=lw, x_px=x, y_px=y)
 
     def plot_line_profiles(self, ax=None):
@@ -138,8 +148,10 @@ class LineProfiles(GenericJob):
             fig, ax = plt.subplots()
         else:
             fig = ax.figure
-        lengths = [line_prof.line_length_px * line_prof.scale for line_prof in self._line_profiles]
-        for i, profile in enumerate(self._line_profiles):
+        lengths = [line_prof.line_length_px * line_prof.scale for line_prof in self._line_profiles.values()]
+        if not self.status.finished:
+            self.run()
+        for i, profile in self._line_profiles.items():
             profile.plot_line_profile(ax=ax, line_properties={"label": f"Line profile {i}"})
         ax.set_xlim(0, np.max(lengths))
         return fig, ax
@@ -167,13 +179,16 @@ class LineProfiles(GenericJob):
         self.status.finished = True
 
     def _calc(self):
-        for i, profile in enumerate(self._line_profiles):
+        for i, key in enumerate(self._line_profiles.keys()):
+            profile = self._line_profiles[key]
+            if self.server.run_mode.interactive:
+                profile.calc_roi()
             self.input.x[i] = profile.x_in_px
             self.input.y[i] = profile.y_in_px
             self.input.lw[i] = profile.lw_in_px
             line_prof = profile.hs_line_profile
             self.output.append({
-                'line': i,
+                'line': key,
                 'x': self.input.x[i],
                 'y': self.input.x[i],
                 'lw': self.input.lw[i],
@@ -215,7 +230,7 @@ class LineProfile:
     def __init__(self, emd_signal, ax=None):
         self._signal = emd_signal
         if ax is None:
-            self.fig = self.ax = None
+            self.fig, self.ax = new_figures_without_auto_plot()
         else:
             self.fig = ax.figure
             self.ax = ax
@@ -230,10 +245,10 @@ class LineProfile:
         self._unit = self._signal.axes_manager[0].units
 
     def set_active(self, active):
-        self._selector.set_active(active)
+        if self._selector is not None:
+            self._selector.set_active(active)
 
     def plot_signal(self):
-        self.fig, self.ax = plt.subplots()
         self.ax.imshow(self._signal.data)
         return self.fig, self.ax
 
@@ -262,13 +277,11 @@ class LineProfile:
         return self._y
 
     def plot_roi(self, x=None, y=None, active=True):
-        if self.ax is None:
-            self.plot_signal()
         if self._selector is None:
             self._selector = ROISelector(self.ax)
         if not active:
-            x = x or self.x_in_px
-            y = y or self.y_in_px
+            x = [xi for xi in x] if x is not None else self.x_in_px
+            y = [yi for yi in y] if y is not None else self.y_in_px
         self._selector.select_line(line_properties=self._line_properties, x=x, y=y)
         self.set_active(active)
 
