@@ -22,7 +22,7 @@ class LineProfiles(GenericJob):
         super().__init__(project=project, job_name=job_name)
         self._signal = None
         self.fig, self.ax = new_figures_without_auto_plot()
-        self._n_lines = 0
+        self._n_lines = -1
         self._line_profiles = {}
         self._active_selector = None
         self._storage = DataContainer(table_name='storage')
@@ -79,7 +79,13 @@ class LineProfiles(GenericJob):
             _original_metadata = self.input.signal.original_metadata
             self._signal = _signal_class(_data, axes=_axes, metadata=_metadata, original_metadata=_original_metadata)
             for line, x, y, lw in zip(self.input.lines, self.input.x, self.input.y, self.input.lw):
-                self._add_line_interactive(lw, line['lin_prop'], x, y)
+                line_dict = self.input.lines[line]
+                if line_dict['lw'] is not None and line_dict['lw'] != lw:
+                    raise ValueError(f"Implementation error: line width from input.lines[lw]={line_dict['lw']}"
+                                     f" and input.lw={lw} differ.")
+                self._add_line(x=x, y=y, lw=lw, line_properties=line_dict['lin_prop'],
+                               line_number=line_dict['line'], append_input=False)
+            self._n_lines = max(self._line_profiles.keys())
 
     def plot_signal(self, ax=None):
         #if ax is None:
@@ -107,41 +113,65 @@ class LineProfiles(GenericJob):
         self._active_selector = value
         for selector in self._line_profiles.values():
             selector.set_active(False)
-        if value is not None:
+        if isinstance(value, int):
             self._line_profiles[value].set_active(True)
-
-    def _add_line_interactive(self, lw, line_properties, x, y):
-        line_profile = LineProfile(self._signal, ax=self.ax)
-        self._n_lines += 1
-        self._line_profiles[self._n_lines] = line_profile
-        line_profile.select_roi(lw=lw, line_properties=line_properties, x=x, y=y)
+        elif isinstance(value, list):
+            for line in value:
+                self._line_profiles[line].set_active(True)
+        elif value is not None:
+            raise ValueError(f"{value} is not an integer.")
 
     def remove_line(self, line=None):
-        line = line if line is not None else self.active_line
-        del self._line_profiles[line]
+        """Remove one or several lines to be removed.
+
+        Args:
+            line(int/list/None): if None, remove active line, otherwise remove line(s) if the index specified.
+        """
+        if line is None and self.active_line is None:
+            raise ValueError("No line selected!")
+        elif line is None and isinstance(self.active_line, list):
+            lines = self.active_line
+        elif line is None:
+            lines = [self.active_line]
+        elif isinstance(line, list):
+            lines = line
+        elif isinstance(line, int):
+            lines = [line]
+        else:
+            raise ValueError(f"'{line}' is not a valid description to select (a) line(s) to be removed.")
+
+        for line in lines:
+            self._line_profiles[line].remove_roi_selection()
+            del self._line_profiles[line]
 
     def add_line(self, lw=5, line_properties=None, x=None, y=None):
         if self.ax is None:
             self.plot_signal()
         if line_properties is None:
             line_properties = dict(color=f"C{self._n_lines + 1}")
-        self._add_line_interactive(lw, line_properties, x, y)
+        self._add_line(x, y, lw, line_properties)
         self.active_line = self._n_lines
-        self.input.lines.append(
-            {'line': self.active_line,
-             'lw': lw,
-             'lin_prop': line_properties}
-        )
-        self.input.x.append(x)
-        self.input.y.append(y)
-        self.input.lw.append(lw)
 
-    def _add_line_static(self, x, y, lw=None):
-        lw = lw or 5
+    def _add_line(self,  x, y, lw, line_properties=None, line_number=None, append_input=True):
         line_profile = LineProfile(self._signal, ax=self.ax)
+        lw = lw or 5
         self._n_lines += 1
-        self._line_profiles[self._n_lines] = line_profile
-        line_profile.calc_roi(lw_px=lw, x_px=x, y_px=y)
+        line_number = line_number or self._n_lines
+        self._line_profiles[line_number] = line_profile
+        if line_properties is not None:
+            line_profile.select_roi(lw=lw, line_properties=line_properties, x=x, y=y)
+        else:
+            line_profile.calc_roi(lw_px=lw, x_px=x, y_px=y)
+
+        if append_input:
+            self.input.lines.append(
+                {'line': line_number,
+                 'lw': lw,
+                 'lin_prop': line_properties}
+            )
+            self.input.x.append(x)
+            self.input.y.append(y)
+            self.input.lw.append(lw)
 
     def plot_line_profiles(self, ax=None):
         if ax is None:
@@ -152,16 +182,20 @@ class LineProfiles(GenericJob):
         if not self.status.finished:
             self.run()
         for i, profile in self._line_profiles.items():
+            if profile.line_properties is None:
+                profile.line_properties = {'color': f"C{i}"}
+                if profile.lw_in_px is not None:
+                    profile.line_properties['linewidth'] = profile.lw_in_px
             profile.plot_line_profile(ax=ax, line_properties={"label": f"Line profile {i}"})
         ax.set_xlim(0, np.max(lengths))
         return fig, ax
 
-    def run_static(self):
-        self.status.running = True
-        if self.job_id is not None:
-            self.project.db.item_update({"timestart": datetime.now()}, self.job_id)
+    def _validate_and_prepare_input_run_static(self):
+        # Check for x-y consistency
         if len(self.input.x) != len(self.input.y):
             raise ValueError("Inconsistent number of x and y values!")
+
+        # Check for x/y - lw consistency; fill with None
         if len(self.input.lw) > 0:
             if len(self.input.lw) != len(self.input.x):
                 raise ValueError("Inconsistent number of x/y and lw values!")
@@ -171,8 +205,28 @@ class LineProfiles(GenericJob):
             lw = [None for _ in self.input.x]
         self.input.lw = lw
 
+        # Check for x/y - lines consistency; fill with appropriate dict
+        if len(self.input.lines) > 0:
+            if len(self.input.lines) != len(self.input.x):
+                raise ValueError("Inconsistent number of x/y and lw values!")
+            else:
+                lines = self.input.lines
+        else:
+            lines = [
+                {'line': i,
+                 'lw': lw,
+                 'lin_prop': None}
+                for i, lw in enumerate(self.input.lw)
+            ]
+        self.input.lines = DataContainer(lines)
+
+    def run_static(self):
+        self.status.running = True
+        if self.job_id is not None:
+            self.project.db.item_update({"timestart": datetime.now()}, self.job_id)
+        self._validate_and_prepare_input_run_static()
         for x, y, _lw in zip(self.input.x, self.input.y, self.input.lw):
-            self._add_line_static(x, y, _lw)
+            self._add_line(x=x, y=y, lw=_lw, append_input=False)
         self._calc()
         self.to_hdf()
         self.active_line = None
@@ -234,6 +288,11 @@ class LineProfile:
         else:
             self.fig = ax.figure
             self.ax = ax
+        self._init_state_variables()
+        self._scale = self._signal.axes_manager[0].scale
+        self._unit = self._signal.axes_manager[0].units
+
+    def _init_state_variables(self):
         self._selector = None
         self._lw = None
         self._line_properties = None
@@ -241,12 +300,14 @@ class LineProfile:
         self._hs_roi = None
         self._x = None
         self._y = None
-        self._scale = self._signal.axes_manager[0].scale
-        self._unit = self._signal.axes_manager[0].units
 
     def set_active(self, active):
         if self._selector is not None:
             self._selector.set_active(active)
+
+    def remove_roi_selection(self):
+        self._selector.remove()
+        self._init_state_variables()
 
     def plot_signal(self):
         self.ax.imshow(self._signal.data)
@@ -255,6 +316,18 @@ class LineProfile:
     @property
     def unit(self):
         return self._unit
+
+    @property
+    def line_properties(self):
+        return self._line_properties
+
+    @line_properties.setter
+    def line_properties(self, value):
+        if not isinstance(value, dict):
+            raise TypeError(f"{value} is not a dictionary")
+        if 'lw' in value or 'linewidth' in value:
+            print("linewidth only affects plotting!")
+        self._line_properties = value
 
     @property
     def lw_in_px(self):
@@ -266,13 +339,13 @@ class LineProfile:
 
     @property
     def x_in_px(self):
-        if self._x is None:
+        if self._x is None and self._selector is not None:
             self._x = self._selector.x
         return self._x
 
     @property
     def y_in_px(self):
-        if self._y is None:
+        if self._y is None and self._selector is not None:
             self._y = self._selector.y
         return self._y
 
@@ -282,6 +355,9 @@ class LineProfile:
         if not active:
             x = [xi for xi in x] if x is not None else self.x_in_px
             y = [yi for yi in y] if y is not None else self.y_in_px
+        line_properties = self.line_properties
+        if 'lw' not in line_properties and 'linewidth' not in line_properties:
+            line_properties['linewidth'] = self._lw or 5
         self._selector.select_line(line_properties=self._line_properties, x=x, y=y)
         self.set_active(active)
 
@@ -300,8 +376,8 @@ class LineProfile:
         self._hs_line_profile = None
 
         scale = self.scale
-        self._x = np.array(x_px or self._selector.x)
-        self._y = np.array(y_px or self._selector.y)
+        self._x = np.array(x_px) if x_px is not None else self._selector.x
+        self._y = np.array(y_px) if y_px is not None else self._selector.y
         self._lw = lw_px or self._lw
         x = self._x * scale
         y = self._y * scale

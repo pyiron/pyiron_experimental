@@ -43,8 +43,17 @@ class LineSelector(plt_wid._SelectorWidget):
         if self.extents != [0, 0, 0, 0]:
             self.extents = self.extents
 
+    def remove(self):
+        for artist in self.artists:
+            artist.remove()
+
     def set_active(self, active):
-        # TODO: change self.corner_handles and self._center_handle marker properties if activity changes.
+        if active:
+            self._corner_handles.artist.set_markerfacecolor('red')
+            self._center_handle.artist.set_markerfacecolor('red')
+        else:
+            self._corner_handles.artist.set_markerfacecolor('white')
+            self._center_handle.artist.set_markerfacecolor('white')
         super().set_active(active)
 
     def _init_to_draw(self, plot_props):
@@ -341,6 +350,9 @@ class ROISelector:
 
     def set_active(self, active):
         self._selector.set_active(active)
+
+    def remove(self):
+        self._selector.remove()
 
     def clear_select(self):
         if self._selector is not None:
