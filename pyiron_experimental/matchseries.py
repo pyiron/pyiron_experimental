@@ -3,7 +3,7 @@ import scanf
 from pyiron_base import GenericJob, GenericParameters
 
 
-class MatchSeries(TemplateJob):
+class MatchSeries(GenericJob):
     def __init__(self, project, job_name):
         super().__init__(project, job_name) 
         self.input = MatchSeriesInput()
