@@ -1,6 +1,6 @@
 import os
 import scanf
-from pyiron_base import TemplateJob, GenericParameters
+from pyiron_base import GenericJob, GenericParameters
 
 
 class MatchSeries(TemplateJob):
@@ -24,7 +24,22 @@ class MatchSeries(TemplateJob):
 
     def collect_output(self):
         pass
+    
+    def to_hdf(self, hdf=None, group_name=None):
+        super().to_hdf(
+            hdf=hdf,
+            group_name=group_name
+        )
+        with self.project_hdf5.open("input") as h5in:
+            self.input.to_hdf(h5in)
 
+    def from_hdf(self, hdf=None, group_name=None):
+        super().from_hdf(
+            hdf=hdf,
+            group_name=group_name
+        )
+        with self.project_hdf5.open("input") as h5in:
+            self.input.from_hdf(h5in)
 
 
 class MatchSeriesInput(GenericParameters):
