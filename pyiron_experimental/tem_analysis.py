@@ -184,8 +184,6 @@ class LineProfiles(GenericJob):
         for i, profile in self._line_profiles.items():
             if profile.line_properties is None:
                 profile.line_properties = {'color': f"C{i}"}
-                if profile.lw_in_px is not None:
-                    profile.line_properties['linewidth'] = profile.lw_in_px
             profile.plot_line_profile(ax=ax, line_properties={"label": f"Line profile {i}"})
         ax.set_xlim(0, np.max(lengths))
         return fig, ax
@@ -357,15 +355,15 @@ class LineProfile:
             y = [yi for yi in y] if y is not None else self.y_in_px
         line_properties = self.line_properties
         if 'lw' not in line_properties and 'linewidth' not in line_properties:
-            line_properties['linewidth'] = self._lw or 5
+            line_properties['linewidth'] = line_properties.pop('roi_linewidth', None) or self._lw or 5
         self._selector.select_line(line_properties=self._line_properties, x=x, y=y)
         self.set_active(active)
 
     def select_roi(self, lw=5, line_properties=None, x=None, y=None):
         if line_properties is None:
-            line_properties = dict(linewidth=lw)
+            line_properties = dict(roi_linewidth=lw)
         else:
-            line_properties['linewidth'] = lw
+            line_properties['roi_linewidth'] = lw
         self._lw = lw
         self._line_properties = line_properties
         self.plot_roi(x=x, y=y)
@@ -412,6 +410,9 @@ class LineProfile:
         _line_properties = dict(linestyle="-", color="C1", label="Line profile")
         if self._line_properties is not None:
             _line_properties.update(self._line_properties)
+            _line_properties.pop('lw', None)
+            _line_properties.pop('linewidth', None)
+            _line_properties.pop('roi_linewidth', None)
         if line_properties is not None:
             _line_properties.update(line_properties)
 
