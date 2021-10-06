@@ -35,6 +35,7 @@ class HSLineProfiles(GenericJob):
         super().__init__(project=project, job_name=job_name)
         self._signal = None
         self.fig, self.ax = new_figures_without_auto_plot()
+        self._useblit = True
         self._n_lines = -1
         self._line_profiles = {}
         self._active_selector = None
@@ -175,6 +176,7 @@ class HSLineProfiles(GenericJob):
 
     def _add_line(self, x, y, lw, line_properties=None, line_number=None, append_input=True):
         line_profile = LineProfile(self._signal, ax=self.ax)
+        line_profile.useblit = self._useblit
         lw = lw or 5
         self._n_lines += 1
         line_number = line_number or self._n_lines
@@ -309,6 +311,7 @@ class HSLineProfiles(GenericJob):
 class LineProfile:
     def __init__(self, emd_signal, ax=None):
         self._signal = emd_signal
+        self.useblit = True
         if ax is None:
             self.fig, self.ax = new_figures_without_auto_plot()
         else:
@@ -378,6 +381,7 @@ class LineProfile:
     def plot_roi(self, x=None, y=None, active=True):
         if self._selector is None:
             self._selector = ROISelector(self.ax)
+            self._selector.useblit = self.useblit
         if not active:
             x = [xi for xi in x] if x is not None else self.x_in_px
             y = [yi for yi in y] if y is not None else self.y_in_px

@@ -421,6 +421,7 @@ class ROISelector:
         self.ax = ax
         self._selector = None
         self._pt1 = self._pt2 = None
+        self.useblit = True
 
     def _on_select(self, pt1, pt2):
         self._pt1 = pt1
@@ -451,24 +452,24 @@ class ROISelector:
 
     def select_circle(self, circle_properties=None, x=None, y=None):
         self.clear_select()
-        self._selector = CircleSelector(self.ax, self._on_select, useblit=True,
+        self._selector = CircleSelector(self.ax, self._on_select, useblit=self.useblit,
                                         button=[1, 3], interactive=True, plot_props=circle_properties,
                                         x=x, y=y)
 
     def select_ellipse(self, ellipsoid_properties=None, x=None, y=None):
         self.clear_select()
-        self._selector = EllipsoidSelector(self.ax, self._on_select, useblit=True,
+        self._selector = EllipsoidSelector(self.ax, self._on_select, useblit=self.useblit,
                                            button=[1, 3], interactive=True, plot_props=ellipsoid_properties,
                                            x=x, y=y)
 
     def select_rectangle(self, rectangle_properties=None, x=None, y=None):
         self.clear_select()
-        self._selector = RectangleSelector(self.ax, self._on_select, useblit=True,
+        self._selector = RectangleSelector(self.ax, self._on_select, useblit=self.useblit,
                                            button=[1, 3], interactive=True, plot_props=rectangle_properties,
                                            x=x, y=y)
 
     def select_line(self, line_properties=None, x=None, y=None):
         self.clear_select()
-        self._selector = LineSelector(self.ax, self._on_select, useblit=True,
+        self._selector = LineSelector(self.ax, self._on_select, useblit=self.useblit,
                                       button=[1, 3], interactive=True, plot_props=line_properties,
                                       x=x, y=y)
