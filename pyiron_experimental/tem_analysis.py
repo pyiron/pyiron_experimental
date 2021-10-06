@@ -4,7 +4,7 @@ import numpy as np
 from datetime import datetime
 
 from pyiron_experimental.image_proc import ROISelector
-from pyiron_base import GenericMaster, GenericJob, DataContainer, InteractiveBase
+from pyiron_base import GenericJob, DataContainer
 
 
 def new_figures_without_auto_plot():
@@ -17,8 +17,21 @@ def new_figures_without_auto_plot():
     return fig, ax
 
 
-class LineProfiles(GenericJob):
+class HSLineProfiles(GenericJob):
+    """
+    HSLineProfiles is based on hyperspy and operates on a hyperspy 2DSignal.
+
+    For convenience the hyperspy.api is accessible via the `hs` attribute.
+    Attributes:
+        signal (hs.Signal2D): 2D signal to analyze.
+        hs: Access to the `hyperspy.api`
+        fig (matplotlib.Figure): figure in which the signal and the region(s) of interest are plotted.
+        input (DataContainer): Input parameters
+        output (DataContainer)
+    """
+
     def __init__(self, project, job_name):
+        """Create a new HSLineProfiles job."""
         super().__init__(project=project, job_name=job_name)
         self._signal = None
         self.fig, self.ax = new_figures_without_auto_plot()
@@ -35,9 +48,14 @@ class LineProfiles(GenericJob):
         _input.signal.hs_class_name = None
         self._storage.create_group('output')
 
+    @property
+    def hs(self):
+        return hs
+
     def validate_ready_to_run(self):
         if self._signal is None:
-            raise ValueError("signal is not defined! Define a signal for which the LineProfiles are computed.")
+            raise ValueError("signal is not defined! Define a signal for which the HSLineProfiles are computed.")
+        self._validate_and_prepare_input_run_static()
 
     @property
     def input(self):
@@ -65,11 +83,11 @@ class LineProfiles(GenericJob):
         self.input.signal.original_metadata = new_signal.original_metadata.as_dictionary()
 
     def to_hdf(self, hdf=None, group_name=None):
-        super(LineProfiles, self).to_hdf()
+        super(HSLineProfiles, self).to_hdf()
         self._storage.to_hdf(hdf=self._hdf5)
 
     def from_hdf(self, hdf=None, group_name=None):
-        super(LineProfiles, self).from_hdf()
+        super(HSLineProfiles, self).from_hdf()
         self._storage.from_hdf(hdf=self._hdf5)
         if self.input.signal.hs_class_name is not None:
             _signal_class = getattr(hs.signals, self.input.signal.hs_class_name)
@@ -88,9 +106,9 @@ class LineProfiles(GenericJob):
             self._n_lines = max(self._line_profiles.keys())
 
     def plot_signal(self, ax=None):
-        #if ax is None:
+        # if ax is None:
         #    self.fig, self.ax = plt.subplots()
-        #else:
+        # else:
         #    self.ax = ax
         self.ax.imshow(self._signal.data)
         return self.fig
@@ -122,7 +140,7 @@ class LineProfiles(GenericJob):
             raise ValueError(f"{value} is not an integer.")
 
     def remove_line(self, line=None):
-        """Remove one or several lines to be removed.
+        """Remove one or several lines.
 
         Args:
             line(int/list/None): if None, remove active line, otherwise remove line(s) if the index specified.
@@ -149,10 +167,13 @@ class LineProfiles(GenericJob):
             self.plot_signal()
         if line_properties is None:
             line_properties = dict(color=f"C{self._n_lines + 1}")
+        valid = self._validate_and_prepare_input_run_static(fail=False)
+        if valid is not True:
+            raise ValueError(f"Prior defined input is not valid: \n {valid[0].args}") from valid[0]
         self._add_line(x, y, lw, line_properties)
         self.active_line = self._n_lines
 
-    def _add_line(self,  x, y, lw, line_properties=None, line_number=None, append_input=True):
+    def _add_line(self, x, y, lw, line_properties=None, line_number=None, append_input=True):
         line_profile = LineProfile(self._signal, ax=self.ax)
         lw = lw or 5
         self._n_lines += 1
@@ -188,27 +209,25 @@ class LineProfiles(GenericJob):
         ax.set_xlim(0, np.max(lengths))
         return fig, ax
 
-    def _validate_and_prepare_input_run_static(self):
+    def _validate_and_prepare_input_run_static(self, fail=True):
+        error = []
         # Check for x-y consistency
         if len(self.input.x) != len(self.input.y):
-            raise ValueError("Inconsistent number of x and y values!")
+            error.append(ValueError("Inconsistent number of x and y values!"))
 
         # Check for x/y - lw consistency; fill with None
-        if len(self.input.lw) > 0:
-            if len(self.input.lw) != len(self.input.x):
-                raise ValueError("Inconsistent number of x/y and lw values!")
-            else:
-                lw = self.input.lw
+        if len(self.input.lw) > 0 and len(self.input.lw) != len(self.input.x):
+            error.append(ValueError("Inconsistent number of x/y and lw values!"))
+        elif len(self.input.lw) > 0:
+            lw = self.input.lw
         else:
             lw = [None for _ in self.input.x]
-        self.input.lw = lw
 
         # Check for x/y - lines consistency; fill with appropriate dict
-        if len(self.input.lines) > 0:
-            if len(self.input.lines) != len(self.input.x):
-                raise ValueError("Inconsistent number of x/y and lw values!")
-            else:
-                lines = self.input.lines
+        if len(self.input.lines) > 0 and len(self.input.lines) != len(self.input.x):
+            error.append(ValueError("Inconsistent number of x/y and lw values!"))
+        elif len(self.input.lines) > 0:
+            lines = self.input.lines
         else:
             lines = [
                 {'line': i,
@@ -216,7 +235,16 @@ class LineProfiles(GenericJob):
                  'lin_prop': None}
                 for i, lw in enumerate(self.input.lw)
             ]
-        self.input.lines = DataContainer(lines)
+
+        if len(error) == 0:
+            # Update input variables
+            self.input.lw = lw
+            self.input.lines = DataContainer(lines)
+            return True
+        elif fail:
+            raise error[0]
+        else:
+            return error
 
     def run_static(self):
         self.status.running = True
@@ -354,9 +382,10 @@ class LineProfile:
             x = [xi for xi in x] if x is not None else self.x_in_px
             y = [yi for yi in y] if y is not None else self.y_in_px
         line_properties = self.line_properties
+        roi_linewidth = line_properties.pop('roi_linewidth', None)
         if 'lw' not in line_properties and 'linewidth' not in line_properties:
-            line_properties['linewidth'] = line_properties.pop('roi_linewidth', None) or self._lw or 5
-        self._selector.select_line(line_properties=self._line_properties, x=x, y=y)
+            line_properties['linewidth'] = roi_linewidth or self._lw or 5
+        self._selector.select_line(line_properties=line_properties, x=x, y=y)
         self.set_active(active)
 
     def select_roi(self, lw=5, line_properties=None, x=None, y=None):
@@ -419,6 +448,8 @@ class LineProfile:
         profile = self.hs_line_profile
         if ax is None:
             fig, ax = plt.subplots()
+        else:
+            fig = ax.figure
         ax.plot(np.arange(profile.data.shape[0]) * self.scale, profile.data, **_line_properties)
 
         ax.legend()
@@ -429,3 +460,4 @@ class LineProfile:
         ax.set_xlabel(f"Distance ({self.unit})")
         ax.set_ylabel("Intensity (a.u)")
 
+        return fig
