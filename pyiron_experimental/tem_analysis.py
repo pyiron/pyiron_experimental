@@ -199,9 +199,9 @@ class HSLineProfiles(GenericJob):
             fig, ax = plt.subplots()
         else:
             fig = ax.figure
-        lengths = [line_prof.line_length_px * line_prof.scale for line_prof in self._line_profiles.values()]
         if not self.status.finished:
-            self.run()
+            self.run(run_mode='interactive')
+        lengths = [line_prof.line_length_px * line_prof.scale for line_prof in self._line_profiles.values()]
         for i, profile in self._line_profiles.items():
             if profile.line_properties is None:
                 profile.line_properties = {'color': f"C{i}"}
@@ -270,7 +270,7 @@ class HSLineProfiles(GenericJob):
             self.output.append({
                 'line': key,
                 'x': self.input.x[i],
-                'y': self.input.x[i],
+                'y': self.input.y[i],
                 'lw': self.input.lw[i],
                 'data': line_prof.data,
                 'scale': profile.scale,
