@@ -5,8 +5,65 @@ import numpy as np
 
 
 class LineSelector(plt_wid._SelectorWidget):
-    def __init__(self, ax, onselect, useblit=False, button=None,
+    """
+    Select a line region of an axes.
+
+    For the cursor to remain responsive you must keep a reference to it.
+    """
+
+    def __init__(self, ax, onselect, useblit=False, button=None, maxdist=10, marker_props=None,
                  state_modifier_keys=None, interactive=False, plot_props=None, x=None, y=None):
+        r"""
+        Parameters
+        ----------
+        ax : `~matplotlib.axes.Axes`
+            The parent axes for the widget.
+
+        onselect : function
+            A callback function that is called after a selection is completed.
+            It must have the signature::
+
+                def onselect(eclick: MouseEvent, erelease: MouseEvent)
+
+            where *eclick* and *erelease* are the mouse click and release
+            `.MouseEvent`\s that start and complete the selection.
+
+        useblit : bool, default: False
+            Whether to use blitting for faster drawing (if supported by the
+            backend).
+
+        plot_props : dict, optional
+            Properties with which the selection is drawn.
+            Default::
+
+                dict(color="black", linestyle="-", linewidth=2, alpha=0.5)
+
+        button : `.MouseButton`, list of `.MouseButton`, default: all buttons
+            Button(s) that trigger rectangle selection.
+
+        maxdist : float, default: 10
+            Distance in pixels within which the interactive tool handles can be
+            activated.
+
+        marker_props : dict
+            Properties with which the interactive handles are drawn.
+
+        interactive : bool, default: False
+            Whether to draw a set of handles that allow interaction with the
+            widget after it is drawn.
+
+        state_modifier_keys : dict, optional
+            Keyboard modifiers which affect the widget's behavior.  Values
+            amend the defaults.
+
+            - "move": Move the existing shape, default: no modifier.
+            - "clear": Clear the current shape, default: "escape".
+            - "square": Makes the shape square, default: "shift".
+            - "center": Make the initial point the center of the shape,
+              default: "ctrl".
+
+            "square" and "center" can be combined.
+        """
         super().__init__(ax, onselect, useblit=useblit, button=button,
                          state_modifier_keys=state_modifier_keys)
         self.visible = True
@@ -14,20 +71,21 @@ class LineSelector(plt_wid._SelectorWidget):
 
         self._init_to_draw(plot_props)
 
-        self.maxdist = 10
+        self.maxdist = maxdist
 
-        props = dict(markeredgecolor='r')
+        if marker_props is None:
+            marker_props = dict(markeredgecolor='r')
         x = [xi for xi in x] if x is not None else [0, 0]
         y = [yi for yi in y] if y is not None else [0, 0]
         self._extents = x + y
 
         self._corner_order = ['I', 'E']  # initial and end point
-        self._corner_handles = plt_wid.ToolHandles(self.ax, x, y, marker_props=props,
+        self._corner_handles = plt_wid.ToolHandles(self.ax, x, y, marker_props=marker_props,
                                                    useblit=self.useblit)
 
         xc, yc = self.center
         self._center_handle = plt_wid.ToolHandles(self.ax, [xc], [yc], marker='s',
-                                                  marker_props=props,
+                                                  marker_props=marker_props,
                                                   useblit=self.useblit)
 
         self.active_handle = None
@@ -97,7 +155,7 @@ class LineSelector(plt_wid._SelectorWidget):
         """Set active handle based on the location of the mouse event."""
         # Note: event.xdata/ydata in data coordinates, event.x/y in pixels
         c_idx, c_dist = self._corner_handles.closest(event.x, event.y)
-        m_idx, m_dist = self._center_handle.closest(event.x, event.y)
+        _, m_dist = self._center_handle.closest(event.x, event.y)
 
         if 'move' in self.state:
             self.active_handle = 'C'
@@ -227,6 +285,12 @@ class LineSelector(plt_wid._SelectorWidget):
 
 
 class RectangleSelector(LineSelector):
+    """
+    Select a rectangle region of an axes.
+
+    The selection is based on a single line which is interpret as the diagonal of the rectangle.
+    For the cursor to remain responsive you must keep a reference to it.
+    """
 
     def _init_to_draw(self, plot_props):
         rectprops = dict(facecolor='red', edgecolor='black',
@@ -258,6 +322,13 @@ class RectangleSelector(LineSelector):
 
 
 class EllipsoidSelector(LineSelector):
+    """
+    Select an ellipsoidal region of an axes.
+
+    The selection is based on a single line which is interpret as the diagonal of a rectangle. The ellipsoid is
+    constructed by taking the same height and the width of that rectangle, i.e. no rotated ellipsoid.
+    For the cursor to remain responsive you must keep a reference to it.
+    """
     def _init_to_draw(self, plot_props):
         ellipsoid_props = dict(facecolor='red', edgecolor='black',
                                alpha=0.2, fill=True)
@@ -274,9 +345,9 @@ class EllipsoidSelector(LineSelector):
 
     def draw_shape(self, extents):
         x0, x1, y0, y1 = extents
-        radius = np.linalg.norm(np.array([x0, y0]) - np.array([x1, y1]))
-        xlim = sorted(self.ax.get_xlim())
-        ylim = sorted(self.ax.get_ylim())
+        # radius = np.linalg.norm(np.array([x0, y0]) - np.array([x1, y1]))
+        # xlim = sorted(self.ax.get_xlim())
+        # ylim = sorted(self.ax.get_ylim())
 
         self.to_draw.set_center([x0, y0])
         self.to_draw.set_width(2*(x1-x0))
@@ -291,6 +362,12 @@ class EllipsoidSelector(LineSelector):
 
 
 class CircleSelector(LineSelector):
+    """
+    Select a circular region of an axes.
+
+    The selection is based on a single line which is interpret as the radius of the circle.
+    For the cursor to remain responsive you must keep a reference to it.
+    """
     def _init_to_draw(self, plot_props):
         circle_props = dict(facecolor='red', edgecolor='black',
                          alpha=0.2, fill=True)
@@ -325,6 +402,21 @@ class CircleSelector(LineSelector):
 
 
 class ROISelector:
+    """Select a region of interest (ROI) on an axis based on a line selection.
+
+    Attributes:
+        ax: the matplotlib.Axis to select the ROI from.
+        x: the x values of start and end point of the line to select the ROI.
+        y: the y values of start and end point of the line to select the ROI.
+
+    Methods:
+        set_active: (de)activate the selector
+        clear_select: remove the selector entirely
+        select_circle: select a circular ROI on the axis.
+        select_ellipse: select an ellipsoidal ROI on the axis.
+        select_line: select a line ROI on the axis.
+        select_rectangle: select a rectangular ROI on the axis.
+    """
     def __init__(self, ax):
         self.ax = ax
         self._selector = None
@@ -351,16 +443,13 @@ class ROISelector:
     def set_active(self, active):
         self._selector.set_active(active)
 
-    def remove(self):
-        self._selector.remove()
-
     def clear_select(self):
         if self._selector is not None:
             self._selector.disconnect_events()
-            self._selector.set_visible(False)
+            self._selector.remove()
             self._selector = None
 
-    def select_circle(self, circle_properties, x=None, y=None):
+    def select_circle(self, circle_properties=None, x=None, y=None):
         self.clear_select()
         self._selector = CircleSelector(self.ax, self._on_select, useblit=True,
                                         button=[1, 3], interactive=True, plot_props=circle_properties,

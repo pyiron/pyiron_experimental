@@ -332,7 +332,7 @@ class LineProfile:
             self._selector.set_active(active)
 
     def remove_roi_selection(self):
-        self._selector.remove()
+        self._selector.clear_select()
         self._init_state_variables()
 
     def plot_signal(self):
