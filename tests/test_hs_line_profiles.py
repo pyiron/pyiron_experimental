@@ -64,37 +64,30 @@ class TestHSLineProfiles(TestWithCleanProject):
         self.job.signal = self.signal
         self.job._useblit = False
 
-        old_backend = mpl.get_backend()
-        try:
-            mpl.use('agg')
-            fig = self.job.plot_signal()
-            fig.show()
-            self.job.add_line(x=[0, 50], y=[10, 10])
-            self.job.plot_line_profiles()
+        fig = self.job.plot_signal()
+        fig.show()
+        self.job.add_line(x=[0, 50], y=[10, 10])
+        self.job.plot_line_profiles()
 
-            with self.subTest('Output line 0'):
-                output = self.job.output[0]
-                self.assertEqual(output['line'], 0)
-                self.assertTrue(np.array_equal(output['x'], [0, 50]), msg=f"Expected {[0, 50]} but got {output['x']}.")
-                self.assertTrue(np.array_equal(output['y'], [10, 10]), msg=f"Expected {[10, 10]} but got {output['y']}.")
-                self.assertAlmostEqual(np.sum(output['data']), 1577323.2)
+        with self.subTest('Output line 0'):
+            output = self.job.output[0]
+            self.assertEqual(output['line'], 0)
+            self.assertTrue(np.array_equal(output['x'], [0, 50]), msg=f"Expected {[0, 50]} but got {output['x']}.")
+            self.assertTrue(np.array_equal(output['y'], [10, 10]), msg=f"Expected {[10, 10]} but got {output['y']}.")
+            self.assertAlmostEqual(np.sum(output['data']), 1577323.2)
 
-            self.job.add_line(x=[50, 50], y=[0, 50])
-            self.job.plot_line_profiles()
-            with self.subTest('Output line 1'):
-                output = self.job.output[1]
-                self.assertEqual(output['line'], 0)
-                self.assertTrue(np.array_equal(output['x'], [0, 50]), msg=f"Expected {[0, 50]} but got {output['x']}.")
-                self.assertTrue(np.array_equal(output['y'], [10, 10]), msg=f"Expected {[10, 10]} but got {output['y']}.")
-                self.assertAlmostEqual(np.sum(output['data']), 1577323.2)
-            with self.subTest('Output line 2'):
-                output = self.job.output[2]
-                self.assertEqual(output['line'], 1)
-                self.assertTrue(np.array_equal(output['x'], [50, 50]), msg=f"Expected {[50, 50]} but got {output['x']}.")
-                self.assertTrue(np.array_equal(output['y'], [0, 50]), msg=f"Expected {[0, 50]} but got {output['y']}.")
-                self.assertAlmostEqual(np.sum(output['data']), 1509104.4)
-
-        finally:
-            mpl.use(old_backend)
-
+        self.job.add_line(x=[50, 50], y=[0, 50])
+        self.job.plot_line_profiles()
+        with self.subTest('Output line 1'):
+            output = self.job.output[1]
+            self.assertEqual(output['line'], 0)
+            self.assertTrue(np.array_equal(output['x'], [0, 50]), msg=f"Expected {[0, 50]} but got {output['x']}.")
+            self.assertTrue(np.array_equal(output['y'], [10, 10]), msg=f"Expected {[10, 10]} but got {output['y']}.")
+            self.assertAlmostEqual(np.sum(output['data']), 1577323.2)
+        with self.subTest('Output line 2'):
+            output = self.job.output[2]
+            self.assertEqual(output['line'], 1)
+            self.assertTrue(np.array_equal(output['x'], [50, 50]), msg=f"Expected {[50, 50]} but got {output['x']}.")
+            self.assertTrue(np.array_equal(output['y'], [0, 50]), msg=f"Expected {[0, 50]} but got {output['y']}.")
+            self.assertAlmostEqual(np.sum(output['data']), 1509104.4)
 
