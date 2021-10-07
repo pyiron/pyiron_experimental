@@ -48,6 +48,7 @@ class HSLineProfiles(GenericJob):
         _input.create_group('signal')
         _input.signal.hs_class_name = None
         self._storage.create_group('output')
+        self._storage.create_group('_control')
 
     @property
     def hs(self):
@@ -85,11 +86,13 @@ class HSLineProfiles(GenericJob):
 
     def to_hdf(self, hdf=None, group_name=None):
         super(HSLineProfiles, self).to_hdf()
+        self._storage._control['useblit'] = self._useblit
         self._storage.to_hdf(hdf=self._hdf5)
 
     def from_hdf(self, hdf=None, group_name=None):
         super(HSLineProfiles, self).from_hdf()
         self._storage.from_hdf(hdf=self._hdf5)
+        self._useblit = self._storage._control['useblit']
         if self.input.signal.hs_class_name is not None:
             _signal_class = getattr(hs.signals, self.input.signal.hs_class_name)
             _data = self.input.signal.data

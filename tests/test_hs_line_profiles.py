@@ -94,3 +94,41 @@ class TestHSLineProfiles(TestWithCleanProject):
         job = self.project.load('tem')
 
         self.assertEqual(job.signal, self.signal)
+
+        with self.subTest('Output line 0'):
+            output = job.output[0]
+            self.assertEqual(output['line'], 0)
+            self.assertTrue(np.array_equal(output['x'], [0, 50]), msg=f"Expected {[0, 50]} but got {output['x']}.")
+            self.assertTrue(np.array_equal(output['y'], [10, 10]), msg=f"Expected {[10, 10]} but got {output['y']}.")
+            self.assertAlmostEqual(np.sum(output['data']), 1577323.2)
+        with self.subTest('Output line 1'):
+            output = job.output[1]
+            self.assertEqual(output['line'], 1)
+            self.assertTrue(np.array_equal(output['x'], [50, 50]), msg=f"Expected {[50, 50]} but got {output['x']}.")
+            self.assertTrue(np.array_equal(output['y'], [0, 50]), msg=f"Expected {[0, 50]} but got {output['y']}.")
+            self.assertAlmostEqual(np.sum(output['data']), 1509104.4)
+
+    def test_load_interactive_workflow(self):
+        self.test_interactive_workflow()
+        job = self.project.load('tem')
+
+        self.assertEqual(job.signal, self.signal)
+
+        with self.subTest('Output line 0'):
+            output = job.output[0]
+            self.assertEqual(output['line'], 0)
+            self.assertTrue(np.array_equal(output['x'], [0, 50]), msg=f"Expected {[0, 50]} but got {output['x']}.")
+            self.assertTrue(np.array_equal(output['y'], [10, 10]), msg=f"Expected {[10, 10]} but got {output['y']}.")
+            self.assertAlmostEqual(np.sum(output['data']), 1577323.2)
+        with self.subTest('Output line 1'):
+            output = job.output[1]
+            self.assertEqual(output['line'], 0)
+            self.assertTrue(np.array_equal(output['x'], [0, 50]), msg=f"Expected {[0, 50]} but got {output['x']}.")
+            self.assertTrue(np.array_equal(output['y'], [10, 10]), msg=f"Expected {[10, 10]} but got {output['y']}.")
+            self.assertAlmostEqual(np.sum(output['data']), 1577323.2)
+        with self.subTest('Output line 2'):
+            output = job.output[2]
+            self.assertEqual(output['line'], 1)
+            self.assertTrue(np.array_equal(output['x'], [50, 50]), msg=f"Expected {[50, 50]} but got {output['x']}.")
+            self.assertTrue(np.array_equal(output['y'], [0, 50]), msg=f"Expected {[0, 50]} but got {output['y']}.")
+            self.assertAlmostEqual(np.sum(output['data']), 1509104.4)
