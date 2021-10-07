@@ -1,6 +1,9 @@
 channels:
 - conda-forge
 dependencies:
+- coveralls
+- coverage
+- codacy-coverage
 - pyiron_base=0.3.5
 - matplotlib=3.4.3
 - temmeta=0.0.6
