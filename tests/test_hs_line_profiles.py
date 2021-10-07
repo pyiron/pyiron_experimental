@@ -88,3 +88,8 @@ class TestHSLineProfiles(TestWithCleanProject):
             self.assertTrue(np.array_equal(output['y'], [0, 50]), msg=f"Expected {[0, 50]} but got {output['y']}.")
             self.assertAlmostEqual(np.sum(output['data']), 1509104.4)
 
+    def test_load_static_workflow(self):
+        self.test_static_workflow()
+        job = self.project.load('tem')
+
+        self.assertEqual(job.signal, self.signal)
