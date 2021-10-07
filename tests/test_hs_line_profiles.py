@@ -1,12 +1,9 @@
 import os
 import numpy as np
-import matplotlib as mpl
-from matplotlib import pyplot as plt
 
 import hyperspy.api as hs
 
 from pyiron_base._tests import TestWithCleanProject
-from pyiron_experimental.tem_analysis import HSLineProfiles
 
 
 class TestHSLineProfiles(TestWithCleanProject):

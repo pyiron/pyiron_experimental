@@ -309,8 +309,14 @@ class HSLineProfiles(GenericJob):
 
 
 class LineProfile:
-    def __init__(self, emd_signal, ax=None):
-        self._signal = emd_signal
+    def __init__(self, signal, ax=None):
+        """Calculate a single line profile for a hyperspy.Signal2D
+
+        Args:
+            signal(hyperspy.Signal2D): The signal to analyze.
+            ax(None/matplotlib.Axis): The axis to plot the signal/roi on.
+        """
+        self._signal = signal
         self.useblit = True
         if ax is None:
             self.fig, self.ax = new_figures_without_auto_plot()
