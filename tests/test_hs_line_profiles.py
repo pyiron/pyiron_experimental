@@ -4,6 +4,7 @@ import numpy as np
 import hyperspy.api as hs
 
 from pyiron_base._tests import TestWithCleanProject
+import pyiron_experimental 
 
 
 class TestHSLineProfiles(TestWithCleanProject):
