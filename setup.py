@@ -37,7 +37,7 @@ setup(
         'matplotlib==3.4.3',
         'temmeta==0.0.6',
         'pystem==0.0.26',
-        'hyperspy==1.6.4',
+        'hyperspy==1.6.5',
         'scanf==1.5.2',
     ],
     cmdclass=versioneer.get_cmdclass(),

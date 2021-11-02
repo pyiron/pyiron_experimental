@@ -6,6 +6,6 @@ dependencies:
 - temmeta=0.0.6
 - pystem =0.0.26
 - match-series
-- hyperspy=1.6.4
+- hyperspy=1.6.5
 - scanf
 - papermill
