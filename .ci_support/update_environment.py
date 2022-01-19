@@ -70,3 +70,7 @@ to_version = sys.argv[6]
 
 updater = EnvironmentUpdater(package_to_update, from_version, to_version)
 updater.update_dependencies()
+
+environment_file = '.ci_support/environment.yml'
+updater = EnvironmentUpdater(package_to_update, from_version, to_version)
+updater.update_dependencies()
