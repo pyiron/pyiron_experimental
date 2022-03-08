@@ -90,8 +90,8 @@ class LineSelector(plt_wid._SelectorWidget):
 
         self.active_handle = None
 
-        self.artists = [self.to_draw, self._center_handle.artist,
-                        self._corner_handles.artist]
+        self.artists = [self.to_draw, self._center_handle.artists,
+                        self._corner_handles.artists]
 
         if not self.interactive:
             self.artists = [self.to_draw]
