@@ -33,7 +33,7 @@ setup(
     keywords='pyiron',
     packages=find_packages(exclude=["*tests*"]),
     install_requires=[
-        'pyiron_base==0.5.8',
+        'pyiron_base==0.5.9',
         'matplotlib==3.4.3',
         'temmeta==0.0.6',
         'pystem==0.0.26',
