@@ -9,3 +9,4 @@ dependencies:
 - hyperspy=1.7.0
 - scanf
 - papermill
+- numpy=1.22.3
