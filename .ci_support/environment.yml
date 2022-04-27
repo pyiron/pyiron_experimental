@@ -11,3 +11,4 @@ dependencies:
 - match-series
 - hyperspy=1.7.0
 - scanf
+- numpy >=1.22.3
