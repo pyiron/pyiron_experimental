@@ -4,10 +4,11 @@ dependencies:
 - coveralls
 - coverage
 - codacy-coverage
-- pyiron_base=0.3.5
-- matplotlib=3.4.3
+- pyiron_base=0.5.11
+- matplotlib=3.5.1
 - temmeta=0.0.6
-- pystem =0.0.26
+- pystem=0.0.26
 - match-series
-- hyperspy=1.6.4
+- hyperspy=1.7.0
 - scanf
+- numpy=1.22.3
