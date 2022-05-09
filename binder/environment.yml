@@ -2,7 +2,7 @@ channels:
 - conda-forge
 dependencies:
 - pyiron_base=0.5.12
-- matplotlib=3.5.1
+- matplotlib=3.5.2
 - temmeta=0.0.6
 - pystem =0.0.26
 - match-series
