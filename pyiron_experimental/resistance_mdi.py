@@ -27,6 +27,10 @@ class ResistanceGP(TemplateJob):
 
     # Change validity of jobs after the fact
     # def validity(self):
+
+    def postprocess_xrd(self):
+        cs = crystal_structure_analysis(self.output['xrd_measurement'])
+        self.output['crystal_structure'] = cs
         
 
     def run_static(self):
@@ -73,6 +77,10 @@ class ResistanceGP(TemplateJob):
         self.output['element_concentration'] = X_tmp
         self.output['resistance_measured'] = y_tmp
         self.output['measurement_indices'] = device.measured_ids
+        self.postprocess_xrd()
+        
+
+        
         #self.output['resistance_model'] = model.
         self.to_hdf()
         self.status.finished = True
