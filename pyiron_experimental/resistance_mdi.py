@@ -5,7 +5,7 @@
 Template class to define jobs
 """
 
-from pyiron_base.job.template import TemplateJob
+from pyiron_base.jobs.job.template import TemplateJob
 from autonoexp.measurement_devices import Resistance
 import autonoexp.gaussian_process as gp
 
@@ -19,8 +19,9 @@ class ResistanceGP(TemplateJob):
         self.input["measurement_device"] = str(type(Resistance))
         self.input["sample_id"] = 12345
         self.input["measure_indices"] = [5, 157, 338, 177, 188]
-        self.input["sample_file"] = "Co-Fe-La-Mn-O_coordinates_composition_resistance.csv"
+        self.input["sample_file"] = None
         self.input["max_gp_iterations"] = 10
+        self.input["element_column_ids"] = None
         
     def _check_if_input_should_be_written(self):
         return False
@@ -28,15 +29,15 @@ class ResistanceGP(TemplateJob):
     # Change validity of jobs after the fact
     # def validity(self):
 
-    def postprocess_xrd(self):
-        cs = crystal_structure_analysis(self.output['xrd_measurement'])
-        self.output['crystal_structure'] = cs
+    # def postprocess_xrd(self):
+    #     cs = crystal_structure_analysis(self.output['xrd_measurement'])
+    #     self.output['crystal_structure'] = cs
         
 
     def run_static(self):
-        device = Resistance(self.input.sample_file)
+        device = Resistance(self.input.sample_file, self.input.element_column_ids)
 
-        X0, y0 = device.get_initial_measurement(indices=self.input.measure_indices)
+        X0, y0 = device.get_initial_measurement(indices=self.input.measure_indices, target_property="Resistance")
 
         # Initialize Gaussian process
         model = gp.GP(X0, y0, device.elements)
@@ -50,7 +51,7 @@ class ResistanceGP(TemplateJob):
 
         print("Max covariance and index = {} [{}]".format(max_cov, index_max_cov))
         
-        X_tmp, y_tmp = device.get_measurement(indices=[index_max_cov])
+        X_tmp, y_tmp = device.get_measurement(indices=[index_max_cov], target_property="Resistance")
 
         model.update_Xy(X_tmp, y_tmp)
         model.predict(X)
@@ -63,7 +64,7 @@ class ResistanceGP(TemplateJob):
 
             print("Max covariance and index = {} [{}]".format(max_cov, index_max_cov))
 
-            X_tmp, y_tmp = device.get_measurement(indices=[index_max_cov])
+            X_tmp, y_tmp = device.get_measurement(indices=[index_max_cov], target_property="Resistance")
             print("New measurement shape = {}".format(X_tmp.shape))
             model.update_Xy(X_tmp, y_tmp)
             
@@ -77,7 +78,7 @@ class ResistanceGP(TemplateJob):
         self.output['element_concentration'] = X_tmp
         self.output['resistance_measured'] = y_tmp
         self.output['measurement_indices'] = device.measured_ids
-        self.postprocess_xrd()
+        #self.postprocess_xrd()
         
 
         
@@ -87,7 +88,7 @@ class ResistanceGP(TemplateJob):
 
     def get_dataframe(self):
         import pandas as pd
-        df = pd.DataFrame(columns=element + 'resistance', element_concentration, measurement_indices)
+        df = pd.DataFrame(element_concentration, measurement_indices, columns=element + 'resistance')
 
         
 
