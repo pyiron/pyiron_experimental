@@ -1,5 +1,5 @@
 import resistance_mdi
-from pyiron import Project
+from pyiron_base import Project
 
 p = Project("./job_test/")
 p.remove_jobs_silently()
