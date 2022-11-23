@@ -6,7 +6,7 @@ Template class to define jobs
 """
 
 #from pyiron_base.jobs.job.template (if not installed experimental)
-from pyiron_base.job.template import TemplateJob 
+from pyiron_base import TemplateJob 
 from autonoexp.measurement_devices import Resistance
 import autonoexp.gaussian_process as gp
 
