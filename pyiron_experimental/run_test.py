@@ -22,7 +22,7 @@ print("DEVICE, raw data = \n", job_measure.device.raw_df)
 
 
 
-print(job_measure.output)
+print(job_measure.output["measurement_indices"])
 
 #job_postproc = p.create_job(mdi_suite.xrd_postproc, "job_postproc")
 #job_postproc.input.xrd_measurement = job_measure
