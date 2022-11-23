@@ -10,11 +10,11 @@ class TestMDIResistance(TestWithCleanProject):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        self.data_file = "../notebooks/Ir-Pd-Pt-Rh-Ru_dataset.csv"
-        self.reference_measurement_indices = [5, 157, 338, 177, 188, 334, 74, 278, 296, 10, 325, 234, 89, 0, 219, 292]
+        cls.data_file = "../notebooks/Ir-Pd-Pt-Rh-Ru_dataset.csv"
+        cls.reference_measurement_indices = [5, 157, 338, 177, 188, 334, 74, 278, 296, 10, 325, 234, 89, 0, 219, 292]
         
     def setUp(self):
-        self.job = self.project.create_job(resistance_mdi.ResistanceGP, 'mdi_resistance_test')
+        self.job = self.project.create.job.ResistanceGP('mdi_resistance_test')
         
 
     def test_static_workflow(self):
