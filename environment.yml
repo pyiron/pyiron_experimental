@@ -1,0 +1,12 @@
+name: pyiron_active_learning
+channels:
+  - /opt/intel/oneapi/conda_channel
+  - intel
+  - defaults
+dependencies:
+  - python=3.9
+  - pyiron_base
+  - h5py
+  - gpy
+  - jupyter
+prefix: /home/markus/.conda/envs/pyiron_active_learning
