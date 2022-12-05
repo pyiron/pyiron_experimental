@@ -66,7 +66,6 @@ class LineSelector(plt_wid._SelectorWidget):
         """
         super().__init__(ax, onselect, useblit=useblit, button=button,
                          state_modifier_keys=state_modifier_keys)
-        self.visible = True
         self.interactive = interactive
 
         self._init_to_draw(plot_props)
@@ -90,11 +89,14 @@ class LineSelector(plt_wid._SelectorWidget):
 
         self.active_handle = None
 
-        self.artists = [self.to_draw, self._center_handle.artist,
-                        self._corner_handles.artist]
+        self._selection_artist = self.to_draw
+        self._handles_artists = self._center_handle.artists + self._corner_handles.artists
+
+        self.visible = True
+
 
         if not self.interactive:
-            self.artists = [self.to_draw]
+            self._handles_artists = ()
 
         self._extents_on_press = None
 
@@ -107,11 +109,11 @@ class LineSelector(plt_wid._SelectorWidget):
 
     def set_active(self, active):
         if active:
-            self._corner_handles.artist.set_markerfacecolor('red')
-            self._center_handle.artist.set_markerfacecolor('red')
+            for artist in self._handles_artists:
+                artist.set_markerfacecolor('red')
         else:
-            self._corner_handles.artist.set_markerfacecolor('white')
-            self._center_handle.artist.set_markerfacecolor('white')
+            for artist in self._handles_artists:
+                artist.set_markerfacecolor('white')
         super().set_active(active)
 
     def _init_to_draw(self, plot_props):
