@@ -66,7 +66,6 @@ class LineSelector(plt_wid._SelectorWidget):
         """
         super().__init__(ax, onselect, useblit=useblit, button=button,
                          state_modifier_keys=state_modifier_keys)
-        self.visible = True
         self.interactive = interactive
 
         self._init_to_draw(plot_props)
@@ -92,6 +91,8 @@ class LineSelector(plt_wid._SelectorWidget):
 
         self._selection_artist = self.to_draw
         self._handles_artists = self._center_handle.artists + self._corner_handles.artists
+
+        self.visible = True
 
 
         if not self.interactive:
