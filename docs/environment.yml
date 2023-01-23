@@ -1,0 +1,18 @@
+channels:
+- conda-forge
+dependencies:
+- ipykernel
+- nbsphinx
+- ipycanvas
+- ipython
+- ipywidgets == 7.*
+- matplotlib
+- nglview
+- numpy
+- pandas
+- pyiron_base
+- pyiron_atomistics >= 0.2.57
+- pyiron_gui >= 0.0.8
+- ryvencore
+- seaborn
+- traitlets
