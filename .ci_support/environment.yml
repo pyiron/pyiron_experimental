@@ -4,7 +4,7 @@ dependencies:
 - coveralls
 - coverage
 - codacy-coverage
-- pyiron_base=0.5.30
+- pyiron_base=0.5.32
 - matplotlib=3.6.3
 - temmeta=0.0.6
 - pystem=0.0.26
