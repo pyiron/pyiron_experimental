@@ -34,7 +34,7 @@ setup(
     packages=find_packages(exclude=["*tests*"]),
     install_requires=[
         'pyiron_base==0.5.30',
-        'matplotlib==3.6.3',
+        'matplotlib==3.7.0',
         'temmeta==0.0.6',
         'pystem==0.0.26',
         'hyperspy==1.7.3',
