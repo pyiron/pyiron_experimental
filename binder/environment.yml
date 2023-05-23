@@ -1,7 +1,7 @@
 channels:
 - conda-forge
 dependencies:
-- pyiron_base=0.5.30
+- pyiron_base=0.5.38
 - matplotlib=3.6.3
 - temmeta=0.0.6
 - pystem =0.0.26
@@ -9,4 +9,3 @@ dependencies:
 - hyperspy=1.7.3
 - scanf
 - papermill
-- numpy=1.22.3
