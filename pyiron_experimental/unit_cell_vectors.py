@@ -82,7 +82,6 @@ class UCVExtractor(PythonTemplateJob):
     def run_static(self):
         params = self.input
         path = os.path.expandvars(params["save_directory"])
-        input_file = params["input_file"]
         im = rescale_intensity(self.image_array, out_range=(0.0, 1.0))
         name = params["save_name"]
         uniform_prefilter_size_setting = (
