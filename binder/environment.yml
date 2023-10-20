@@ -8,4 +8,4 @@ dependencies:
 - hyperspy=1.7.5
 - scanf
 - papermill
-- numpy=1.22.3
+- numpy=1.23.3
