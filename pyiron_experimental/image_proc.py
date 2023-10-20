@@ -92,7 +92,7 @@ class LineSelector(plt_wid._SelectorWidget):
         self._selection_artist = self.to_draw
         self._handles_artists = self._center_handle.artists + self._corner_handles.artists
 
-        self.visible = True
+        self.set_visible(True)
 
 
         if not self.interactive:
