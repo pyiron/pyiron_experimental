@@ -7,5 +7,6 @@ dependencies:
 - match-series
 - hyperspy=2.0
 - scanf
+- sparse
 - papermill
 - numpy=1.26.0
