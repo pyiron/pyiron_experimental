@@ -5,7 +5,8 @@ dependencies:
 - matplotlib=3.8.2
 - pystem =0.0.26
 - match-series
-- hyperspy=1.7.6
+- hyperspy=2.0
 - scanf
+- sparse
 - papermill
-- numpy=1.26.0
+- jupyter
