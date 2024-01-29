@@ -10,3 +10,4 @@ dependencies:
 - sparse
 - papermill
 - numpy=1.26.0
+- jupyter
