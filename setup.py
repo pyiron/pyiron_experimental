@@ -34,7 +34,7 @@ setup(
         'pyiron_base==0.9.1',
         'matplotlib==3.8.4',
         'pystem==0.0.26',
-        'hyperspy==2.0.1',
+        'hyperspy==2.1.0',
         'scanf==1.5.2',
     ],
     cmdclass=versioneer.get_cmdclass(),
