@@ -73,7 +73,7 @@ class HSLineProfiles(GenericJob):
 
     @signal.setter
     def signal(self, new_signal):
-        if not isinstance(new_signal, hs.hyperspy.signal.BaseSignal):
+        if not isinstance(new_signal, hs.signals.BaseSignal):
             raise ValueError('The signal has to have be hyperspy signal!')
         if not self.status.initialized:
             raise RuntimeError("Signal cannot be changed for a started job.")
