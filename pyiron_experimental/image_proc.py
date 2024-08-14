@@ -192,7 +192,7 @@ class LineSelector(plt_wid._SelectorWidget):
         self.draw_shape(extents)
         # Update displayed handles
         self._corner_handles.set_data([extents[0], extents[1]], y=[extents[2], extents[3]])
-        self._center_handle.set_data(*self.center)
+        self._center_handle.set_data([[self.center[0]], [self.center[1]]])
         self.set_visible(self.visible)
         self.update()
 
